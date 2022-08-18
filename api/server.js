@@ -6,11 +6,14 @@ const app = express()
 const PORT = process.env.PORT
 const dbURL = process.env.MONGODB_URL
 
-mongoose.connect()
+// mongoose.connect()
 
-const dataController = require("./controllers/data")
+const userController = require("./controllers/user")
+const messageController = require("./controllers/message")
 
-app.use("/", dataController)
+
+app.use("/", messageController)
+app.use("/", userController)
 
 mongoose.connect(dbURL, () => {
   console.log("connected to surfaceDB")

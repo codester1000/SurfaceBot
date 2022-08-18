@@ -1,0 +1,44 @@
+[
+  {
+  "id": 1,
+  "discordID": 692547174839353405,
+  "username": "codester1000",
+  "messagesSent": 231,
+  "invitees": [2, 3]
+  },
+  {  
+  "id": 2,
+  "username": "ben",
+  "discordID": 345345,
+  "messagesSent": 553,
+  "invitees": [5]
+  },
+  {  
+    "id": 3,
+    "username": "NAQVI",
+    "discordID": 586869594,
+    "messagesSent": 123,
+    "invitees": []
+  },
+  {
+  "id": 4,
+  "discordID": 16432758,
+  "username": "DaPoopy",
+  "messagesSent": 21,
+  "invitees": [6]
+  },
+  {  
+  "id": 5,
+  "username": "Tester4",
+  "discordID": 23465756487,
+  "messagesSent": 2,
+  "invitees": [5]
+  },
+  {  
+    "id": 6,
+    "username": "LAST3",
+    "discordID": 54574577457,
+    "messagesSent": 0,
+    "invitees": []
+  }
+]
