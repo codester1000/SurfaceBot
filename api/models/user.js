@@ -9,7 +9,9 @@ const userSchema = mongoose.Schema(
     messages: [ { type: String } ],
     avatar: { type: String},
     banner: { type: String},
-    accentColor: { type: String}
+    accentColor: { type: String},
+    startVoiceTime: { type: Number },
+    voiceChatTime: { type: Number, default: 0 },
   }
 )
 

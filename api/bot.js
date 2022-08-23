@@ -20,7 +20,8 @@ const client = new Client({
     GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.DirectMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMembers
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildVoiceStates
   ]
 });
 
@@ -36,7 +37,21 @@ client.on('messageCreate', async (msg) => {
   var guild = await client.guilds.cache.get(msg.guild.id)
   const userDataArray = []
 
-  if(msg.content === '!server'){
+  if(msg.content === '!fixtimes') {
+    await guild.members.fetch().then(members => {
+      members.forEach(member => {
+        if (!member.user.bot) {
+          const createUser = UserData.findOneAndUpdate(
+            { userID: member.user.id },
+            { $inc: { voiceChatTime: 0 } },
+            { new: true }
+          )
+        }
+      })
+    })
+  }
+
+  if(msg.content === '!servercreatethis'){
     const createServer = await DiscordServerData.create({
       serverName: guild.name,
       serverID: guild.id,
@@ -113,6 +128,46 @@ client.on("guildMemberAdd" ,(member) => {
   //   })
   // }
 });
+
+client.on('voiceStateUpdate', async (oldState, newState) => {
+  let newUserChannel = newState.channel
+  let oldUserChannel = oldState.channel
+
+  if (oldUserChannel === null && newUserChannel !== null) {
+    // User Join a voice channel
+    // Handle your save when user join in memcache, database , ...
+    const addVoiceStart = await UserData.findOneAndUpdate(
+      { userID: newState.id },
+      { startVoiceTime: Date.now() },
+      { new: true }
+    )
+
+  } else if (oldUserChannel !== null && newUserChannel === null) {
+    // User Leave a voice channel
+    // Calculate with previous save time to get in voice time
+    const timedata = await UserData.findOne({userID: newState.id}, 'startVoiceTime').exec()
+    const delta = Math.floor((Date.now() - timedata.startVoiceTime)/1000)
+    console.log(delta)
+    const endVoiceStart = await UserData.findOneAndUpdate(
+      { userID: newState.id },
+      { 
+        $inc: { voiceChatTime: delta },
+        startVoiceTime: 0
+      },
+      { new: true }
+    )
+
+  } else if (
+    oldUserChannel !== null &&
+    newUserChannel !== null &&
+    oldUserChannel.id != newUserChannel.id
+  ) {
+
+    // User Switch a voice channel
+    // This is bonus if you want to do something futhermore
+ }
+
+})
 
 
 client.on('error', err => {
