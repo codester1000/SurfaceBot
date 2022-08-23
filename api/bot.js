@@ -37,7 +37,21 @@ client.on('messageCreate', async (msg) => {
   var guild = await client.guilds.cache.get(msg.guild.id)
   const userDataArray = []
 
-  if(msg.content === '!server'){
+  if(msg.content === '!fixtimes') {
+    await guild.members.fetch().then(members => {
+      members.forEach(member => {
+        if (!member.user.bot) {
+          const createUser = UserData.findOneAndUpdate(
+            { userID: member.user.id },
+            { $inc: { voiceChatTime: 0 } },
+            { new: true }
+          )
+        }
+      })
+    })
+  }
+
+  if(msg.content === '!servercreatethis'){
     const createServer = await DiscordServerData.create({
       serverName: guild.name,
       serverID: guild.id,
