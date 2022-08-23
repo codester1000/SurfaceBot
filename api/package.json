@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@discordjs/rest": "^1.0.1",
+    "cors": "^2.8.5",
     "discord.js": "^14.2.0",
     "djs.ext.commands": "^0.2.6",
     "dotenv": "^16.0.1",

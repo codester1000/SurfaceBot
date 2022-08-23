@@ -3,12 +3,16 @@ const mongoose = require('mongoose')
 const userSchema = mongoose.Schema(
   { 
     username: { type: String, required: true },
+    discriminator: { type: String, required: true },
     userID:  { type: Number, required: true},
     numberOfMessages: { type: Number, default: 0 },
-    messages: [{type: mongoose.Schema.Types.ObjectId, ref: 'Message'}]
+    messages: [ { type: String } ],
+    avatar: { type: String},
+    banner: { type: String},
+    accentColor: { type: String}
   }
 )
 
-const User = mongoose.model('User', userSchema)
+const UserData = mongoose.model('UserData', userSchema)
 
-module.exports = User
+module.exports = UserData

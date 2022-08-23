@@ -3,13 +3,13 @@ import React from 'react'
 import Container from 'react-bootstrap/Container';
 import Chart from './Chart';
 import TopCards from './TopCards';
-import serverData from '../serverTestData.json';
-import userData from '../userTestData.json';
 import DataTable from './DataTable';
 
-const Board = (props) => {
-  const totalMessages = serverData.messagesSent
-  const totalUsers = serverData.users.length
+const Board = ( { server, users } ) => {
+  const totalUsers = users.length
+  const totalMessages = server.messagesSent
+
+  
   return (
       <Container>
         <div className='top'>
@@ -19,8 +19,8 @@ const Board = (props) => {
         </div>
         {/* <Chart /> */}
         <div className='bottom'>
-          <DataTable users={userData} title="Messages Sent"/>
-          <DataTable users={userData} title="Invites"/>
+          <DataTable users={users} title="Messages Sent"/>
+          <DataTable users={users} title="Invites"/>
         </div>
       </Container>
   )

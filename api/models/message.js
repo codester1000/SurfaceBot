@@ -2,14 +2,14 @@ const mongoose = require('mongoose')
 
 const messageSchema = mongoose.Schema(
   {
+    messageID: { type: String, required: true},
     messageContent: {type: String, required: true},
-    reply: {type: Boolean, required: true},
-    replyMessageId: [{type: mongoose.Schema.Types.ObjectId, ref: 'Message'}],
-    mention: String
+    replyMessageId: [ { type: String } ],
+    mentions: [ { type: String } ],
   }, 
   { timestamps: true }
 )
 
-const Message = mongoose.model('Message', messageSchema)
+const MessageData = mongoose.model('MessageData', messageSchema)
 
-module.exports = Message
+module.exports = MessageData

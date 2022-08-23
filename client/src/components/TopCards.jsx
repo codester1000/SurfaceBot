@@ -7,7 +7,7 @@ const TopCards = (props) => {
       <CDBCard style={{width: "100%"}} className="topcard">
         <CDBCardBody>
           <h3 className="lead card_title">{props.title}</h3>
-          <h7 className="h3" tag="h3">{props.data}</h7>
+          <h5 className="h3" tag="h3">{props.data}</h5>
         </CDBCardBody>
       </CDBCard>
     </CDBContainer>
