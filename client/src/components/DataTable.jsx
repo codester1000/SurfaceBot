@@ -5,19 +5,18 @@ import { CDBCard, CDBCardBody, CDBCardTitle, CDBCardText, CDBIcon, CDBContainer 
 
 const DataTable = ({ users, title }) => {
 
-  const DataRow = ({ id, username, messagesSent }) => {
-    
+  const DataRow = ({ username, messagesSent }) => {
     return (
     <tr>
-      <td>{id}</td>
       <td>{username}</td>
       <td>{messagesSent}</td>
     </tr>
     )
   }
 
+  const filterData = users.sort((a, b) => b.numberOfMessages - a.numberOfMessages)
   const userList = users.map((user) => {
-    return <DataRow id={user.id} username={user.username} messagesSent={user.messagesSent} />
+    return <DataRow key={user.userID} username={user.username} messagesSent={user.numberOfMessages} />
 
   })
   return (
@@ -26,13 +25,12 @@ const DataTable = ({ users, title }) => {
       <Table bordereless striped>
         <thead>
           <tr>
-            <th>#</th>
             <th>Username</th>
             <th>Messages Sent</th>
           </tr>
         </thead>
         <tbody>
-          {userList}
+          {users && userList}
         </tbody>
       </Table>
     </div>
