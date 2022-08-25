@@ -17,7 +17,7 @@ const Dashboard = () => {
   const getServers = async () => {
     // this may be a security risk but for now its going to have to do
     try {
-      const response = await fetch('http://localhost:3000/servers', {
+      const response = await fetch('/servers', {
         method: 'GET',
         headers: {
           accept: 'application/json',
@@ -39,7 +39,7 @@ const Dashboard = () => {
   }
   const getUsers = async () => {
     try {
-      const response = await fetch('http://localhost:3000/users', {
+      const response = await fetch('/users', {
         method: 'GET',
         headers: {
           accept: 'application/json',
