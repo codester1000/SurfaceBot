@@ -6,16 +6,16 @@ import './App.css';
 import Dashboard from './components/Dashboard'
 import DashboardNavbar from './components/Navbar'
 import Home from './components/Home'
-import './App.css';
+import ProtectedRoute from './components/ProtectedRoute';
 
 
 
 function App() {
-  const [authorised, setAuthorised] = useState(null)
+  const [authorised, setAuthorised] = useState(true)
   const navigate = useNavigate()
   const handleAuth = (authed) => {
     setAuthorised(authed)
-    navigate("/:serverName")
+    navigate("/:serverID")
   }
 
   const handleLogout = () => {
@@ -29,10 +29,6 @@ function App() {
         <Route path='/' element={
           <Home />
         } />
-        <Route path='/:serverID/login' element={
-          <Login />
-        } />
-
         <Route path='/:serverID' element= {
           <ProtectedRoute authorised={authorised}>
             <Dashboard/>

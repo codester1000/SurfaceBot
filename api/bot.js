@@ -34,7 +34,6 @@ client.on("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!`)
   await wait(100)
   
-
   client.guilds.cache.forEach(async (guild) => {
 
     // Fetch all Guild Invites
@@ -52,6 +51,7 @@ client.on("ready", async () => {
         }
       )
     })
+
     // Set the key as Guild ID, and create a map which has the invite code, and the number of uses
     
   })
@@ -64,6 +64,7 @@ client.on('messageCreate', async (msg) => {
   if (!msg.content) {
     return
   }
+  console.log(msg)
   var guild = await client.guilds.cache.get(msg.guild.id)
   const userDataArray = []
 
@@ -112,18 +113,18 @@ client.on("inviteCreate", async (invite) => {
 });
 
 client.on("guildMemberAdd", async (member) => {
-  // const createUser = await UserData.create({
-  //   username: member.user.username,
-  //   discriminator: member.user.discriminator,
-  //   userID: member.user.id,
-  //   serverID: member.guild.id,
-  //   numberOfMessages: 0,
-  //   messages: [],
-  //   avatar: member.user.avatar,
-  //   banner: member.user.banner,
-  //   accentColor: member.user.accentColor,
-  //   voiceChatTime: 0
-  // })
+  const createUser = await UserData.create({
+    username: member.user.username,
+    discriminator: member.user.discriminator,
+    userID: member.user.id,
+    serverID: member.guild.id,
+    numberOfMessages: 0,
+    messages: [],
+    avatar: member.user.avatar,
+    banner: member.user.banner,
+    accentColor: member.user.accentColor,
+    voiceChatTime: 0
+  })
   const newInvites = await member.guild.invites.fetch()
   const oldInvites = await InvitesData.find({})
   const newInvitesData = newInvites.map(
@@ -148,10 +149,11 @@ client.on("guildMemberAdd", async (member) => {
 });
 
 client.on("guildMemberRemove", async (member) => {
-  console.log('this shit', member.user.id, member.guild.id)
+  console.log('this shit', member.user.id, member.guild.id, 'doesnt work')
   const removeServerUser = await UserData.findOneAndDelete(
     {userID: member.user.id, serverID: member.guild.id}
-  )
+  ).exec()
+  console.log(removeServerUser)
 })
 
 client.on("guildMemberUpdate", async (member) => {
@@ -207,6 +209,56 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     // This is bonus if you want to do something futhermore
  }
 
+})
+
+// send only moderators to the website and give them access
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isChatInputCommand()) return;
+  const { commandName } = interaction;
+  // if (!interaction.author.hasPermission("MANAGE_MESSAGES")) {
+  //   console.log('working')
+  //   return
+  // };
+  if (commandName === 'dashboard') {
+    console.log(interaction.member)
+    console.log(interaction.member.guild.id)
+    await interaction.reply('PM Sent')
+		await interaction.member.user.send(`localhost:3001/${interaction.member.guild.id}`)
+  }
+  if (commandName === 'serverSetup') {
+    const createServer = await DiscordServerData.create({
+      serverName: guild.name,
+      serverID: guild.id,
+      messagesSent: 0,
+      memberCount: guild.memberCount
+    })
+    // creates all the members
+    await guild.members.fetch().then(members => {
+      members.forEach(member => {
+        if (!member.user.bot) {
+          const createUser = UserData.create({
+            username: member.user.username,
+            discriminator: member.user.discriminator,
+            userID: member.user.id,
+            serverID: msg.guild.id,   
+            numberOfMessages: 0,
+            messages: [],
+            avatar: member.user.avatar,
+            banner: member.user.banner,
+            accentColor: member.user.accentColor,
+            voiceChatTime: 0,
+          })
+          userDataArray.push(member.user.id)
+        }
+      })
+    })
+    const addUserData = await DiscordServerData.findOneAndUpdate(
+      { serverID: guild.id },
+      { users: userDataArray },
+      { new: true }
+    )
+
+  }
 })
 
 

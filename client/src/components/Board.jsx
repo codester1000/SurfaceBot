@@ -8,6 +8,7 @@ import DataTable from './DataTable';
 const Board = ( { server, users } ) => {
   const totalUsers = users.length
   const totalMessages = server.messagesSent
+  console.log(server.messagesSent)
 
   
   return (
