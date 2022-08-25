@@ -11,7 +11,7 @@ const DiscordServerData = require('./models/discordserver')
 const InvitesData = require('./models/invites')
 
 
-const dbURL = 'mongodb://localhost:27017/surfacebot'
+const dbURL = process.env.MONGODB_URL
 const token = process.env.TOKEN
 
 const client = new Client({ 
