@@ -1,77 +1,40 @@
 import { useState, useEffect } from 'react'
+import { Routes, Route, useNavigate, useParams } from 'react-router-dom'
 
 import logo from './logo.svg';
 import './App.css';
-import Dashboard from './components/Board'
+import Dashboard from './components/Dashboard'
 import DashboardNavbar from './components/Navbar'
-import './App.css';
+import Home from './components/Home'
+import ProtectedRoute from './components/ProtectedRoute';
 
 
 
 function App() {
-  const [server, setServer] = useState(null)
-  const [users, setUsers] = useState(null)
-
-  const getServers = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/servers', {
-        method: 'GET',
-        headers: {
-          accept: 'application/json',
-          "Access-Control-Allow-Origin": "*",
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`Error! status: ${response.status}`);
-      }
-      const result = await response.json();
-      // this needs to be changed when searching
-      setServer(result[0])
-    } catch (err) {
-      console.log(err);
-    }
-  
-    // const url = 'https://localhost:3000/servers'
-    // const res = await fetch(url)
-    // const serverData = await res.json()
-    // console.log(serverData)
-    // setServer(serverData)
+  const [authorised, setAuthorised] = useState(true)
+  const navigate = useNavigate()
+  const handleAuth = (authed) => {
+    setAuthorised(authed)
+    navigate("/:serverID")
   }
-  const getUsers = async () => {
-    try {
-      const response = await fetch('http://localhost:3000/users', {
-        method: 'GET',
-        headers: {
-          accept: 'application/json',
-          "Access-Control-Allow-Origin": "*",
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`Error! status: ${response.status}`);
-      }
-      const result = await response.json();
-      setUsers(result)
-      
-    } catch (err) {
-      console.log(err);
-    }
-  }
-  useEffect(() => {
-    getServers()
-    getUsers()
-  }, [])
 
+  const handleLogout = () => {
+    setAuthorised(false)
+    navigate("/")
+  }
 
   return (
     <div>
-      {/* <Routes> */}
-        {/* <Route path='/' element= { */}
-          <div>
-            <DashboardNavbar />
-            {users && <Dashboard server={server} users={users}/>}
-          </div>
-        {/* }/> */}
-      {/* </Routes> */}
+      <Routes>
+        <Route path='/' element={
+          <Home />
+        } />
+        <Route path='/:serverID' element= {
+          <ProtectedRoute authorised={authorised}>
+            <Dashboard/>
+          </ProtectedRoute>
+        }/>
+      </Routes>
     </div>
   );
 }
