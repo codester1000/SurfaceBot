@@ -19,7 +19,7 @@ const Board = ( { server, users } ) => {
         </div>
         {/* <Chart /> */}
         <div className='bottom'>
-          <DataTable users={users} title="Messages Sent" th="Messages Sent"/>
+          <DataTable users={users} title="Messages" th="Sent"/>
           <DataTable users={users} title="Voice Chat" th="Time (hr:min:sec)"/>
           <DataTable users={users} title="Invites" th="Users Invited"/>
         </div>

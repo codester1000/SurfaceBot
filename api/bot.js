@@ -8,6 +8,8 @@ const mongoose = require('mongoose')
 const UserData = require('../api/models/user')
 const MessageData = require('../api/models/message')
 const DiscordServerData = require('./models/discordserver')
+const InvitesData = require('./models/invites')
+
 
 const dbURL = 'mongodb://localhost:27017/surfacebot'
 const token = process.env.TOKEN
@@ -21,67 +23,49 @@ const client = new Client({
     GatewayIntentBits.DirectMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildVoiceStates
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildInvites
   ]
 });
 
+const wait = require("timers/promises").setTimeout;
 
-client.on("ready", () => {
+client.on("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!`)
+  await wait(100)
+  
+
+  client.guilds.cache.forEach(async (guild) => {
+
+    // Fetch all Guild Invites
+    const removeInvite = await InvitesData.deleteMany({ serverID: guild.id }).exec()
+    console.log(removeInvite)
+    const firstInvites = await guild.invites.fetch();
+
+    firstInvites.map((invite) => {
+      const addInvite = InvitesData.create(
+        {
+          serverID: invite.guild.id,
+          code: invite.code,
+          uses: invite.uses,
+          member: invite.inviterId
+        }
+      )
+    })
+    // Set the key as Guild ID, and create a map which has the invite code, and the number of uses
+    
+  })
 })
 
 client.on('messageCreate', async (msg) => {
   if (msg.author.bot) {
     return
   }
+  if (!msg.content) {
+    return
+  }
   var guild = await client.guilds.cache.get(msg.guild.id)
   const userDataArray = []
-
-  if(msg.content === '!fixtimes') {
-    await guild.members.fetch().then(members => {
-      members.forEach(member => {
-        if (!member.user.bot) {
-          const createUser = UserData.findOneAndUpdate(
-            { userID: member.user.id },
-            { $inc: { voiceChatTime: 0 } },
-            { new: true }
-          )
-        }
-      })
-    })
-  }
-
-  if(msg.content === '!servercreatethis'){
-    const createServer = await DiscordServerData.create({
-      serverName: guild.name,
-      serverID: guild.id,
-      messagesSent: 0,
-      memberCount: guild.memberCount
-    })
-    // creates all the members
-    await guild.members.fetch().then(members => {
-      members.forEach(member => {
-        if (!member.user.bot) {
-          const createUser = UserData.create({
-            username: member.user.username,
-            discriminator: member.user.discriminator,
-            userID: member.user.id,
-            numberOfMessages: 0,
-            messages: [],
-            avatar: member.user.avatar,
-            banner: member.user.banner,
-            accentColor: member.user.accentColor
-          })
-          userDataArray.push(member.user.id)
-        }
-      })
-    })
-    const addUserData = await DiscordServerData.findOneAndUpdate(
-      { serverID: guild.id },
-      { users: userDataArray },
-      { new: true }
-    )
-  }
 
   const messageAdd = await UserData.findOneAndUpdate(
     {userID: msg.author.id.toString()},
@@ -102,32 +86,88 @@ client.on('messageCreate', async (msg) => {
     messageID: msg.id,
     messageContent: msg.content
   })
-  console.log(messageAdd, serverAddUp, insertMessage)
 
 });
 
-client.on("guildMemberAdd" ,(member) => {
-  console.log(member)
-  // if the user exists in another server that is controlled by SurfaceBot
-  // if (await User.findbyId) {
-  //   const updateUser = await User.findOneAndUpdate(
-  //     {userID: member.user.id},
-  //     {servers: [...servers, memeber.guild.id]},
-  //     { new: true }
-  //   )
-  // } else {
-  //   const createUser = await User.create({
-  //     userID: member.user.id,
-  //     username: member.user.username,
-  //     discriminator: member.user.discriminator,
-  //     avatar: member.user.avatar,
-  //     banner: member.user.banner,
-  //     accentColor: member.user.accentColor,
-  //     messages: [],
-  //     servers: [member.guild.id]
-  //   })
-  // }
+
+
+client.on("inviteDelete", async (invite) => {
+  // Delete the Invite from Cache
+  const removeInvite = await InvitesData.deleteMany({ code: invite.code }).exec()
+  console.log('invite delete', removeInvite)
 });
+
+client.on("inviteCreate", async (invite) => {
+  // Update cache on new invites
+  console.log(invite)
+  const addInvite = await InvitesData.create(
+    {
+      serverID: invite.guild.id,
+      code: invite.code,
+      users: invite.users
+    }
+  )
+  console.log('invite create', addInvite)
+
+});
+
+client.on("guildMemberAdd", async (member) => {
+  // const createUser = await UserData.create({
+  //   username: member.user.username,
+  //   discriminator: member.user.discriminator,
+  //   userID: member.user.id,
+  //   serverID: member.guild.id,
+  //   numberOfMessages: 0,
+  //   messages: [],
+  //   avatar: member.user.avatar,
+  //   banner: member.user.banner,
+  //   accentColor: member.user.accentColor,
+  //   voiceChatTime: 0
+  // })
+  const newInvites = await member.guild.invites.fetch()
+  const oldInvites = await InvitesData.find({})
+  const newInvitesData = newInvites.map(
+    async (newInvite) => {
+      const oldInvite = await InvitesData.findOne({code: newInvite.code}).exec()
+      if (newInvite.uses > oldInvite.uses) {
+        console.log(oldInvite.uses)
+        const updateInviteUses = await InvitesData.findOneAndUpdate(
+          { code: newInvite.code, serverID: member.guild.id },
+          { $inc: { uses: 1 } },
+          { new: true }
+        )
+        console.log(member.id)
+        const updateInvites = await UserData.findOneAndUpdate(
+          { userID: oldInvite.member, serverID: member.guild.id },
+          { $push: { invitees: member.id } },
+          { new: true }
+        )
+      }
+    }
+  ) 
+});
+
+client.on("guildMemberRemove", async (member) => {
+  console.log('this shit', member.user.id, member.guild.id)
+  const removeServerUser = await UserData.findOneAndDelete(
+    {userID: member.user.id, serverID: member.guild.id}
+  )
+})
+
+client.on("guildMemberUpdate", async (member) => {
+  const updateUsersData = await UserData.findOneAndUpdate(
+    { userID: member.user.id },
+    {
+    username: member.user.username,
+    discriminator: member.user.discriminator,
+    avatar: member.user.avatar,
+    banner: member.user.banner,
+    accentColor: member.user.accentColor,
+    voiceChatTime: 0
+    },
+    {new: true}
+  )
+})
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
   let newUserChannel = newState.channel
@@ -192,3 +232,72 @@ mongoose.connect(dbURL, () => {
 // 		await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
 // 	}
 // });
+
+  // if(msg.content === '!serverfix'){
+  //   const createServer = await DiscordServerData.create({
+  //     serverName: guild.name,
+  //     serverID: guild.id,
+  //     messagesSent: 0,
+  //     memberCount: guild.memberCount
+  //   })
+  //   // creates all the members
+  //   await guild.members.fetch().then(members => {
+  //     members.forEach(member => {
+  //       if (!member.user.bot) {
+  //         const createUser = UserData.create({
+  //           username: member.user.username,
+  //           discriminator: member.user.discriminator,
+  //           userID: member.user.id,
+  //           serverID: msg.guild.id,   
+  //           numberOfMessages: 0,
+  //           messages: [],
+  //           avatar: member.user.avatar,
+  //           banner: member.user.banner,
+  //           accentColor: member.user.accentColor,
+  //           voiceChatTime: 0,
+  //         })
+  //         userDataArray.push(member.user.id)
+  //       }
+  //     })
+  //   })
+  //   const addUserData = await DiscordServerData.findOneAndUpdate(
+  //     { serverID: guild.id },
+  //     { users: userDataArray },
+  //     { new: true }
+  //   )
+  // }
+
+  // reset server
+  //   if(msg.content === '!serverfix'){
+  //   const createServer = await DiscordServerData.create({
+  //     serverName: guild.name,
+  //     serverID: guild.id,
+  //     messagesSent: 0,
+  //     memberCount: guild.memberCount
+  //   })
+  //   // creates all the members
+  //   await guild.members.fetch().then(members => {
+  //     members.forEach(member => {
+  //       if (!member.user.bot) {
+  //         const createUser = UserData.create({
+  //           username: member.user.username,
+  //           discriminator: member.user.discriminator,
+  //           userID: member.user.id,
+  //           serverID: msg.guild.id,   
+  //           numberOfMessages: 0,
+  //           messages: [],
+  //           avatar: member.user.avatar,
+  //           banner: member.user.banner,
+  //           accentColor: member.user.accentColor,
+  //           voiceChatTime: 0,
+  //         })
+  //         userDataArray.push(member.user.id)
+  //       }
+  //     })
+  //   })
+  //   const addUserData = await DiscordServerData.findOneAndUpdate(
+  //     { serverID: guild.id },
+  //     { users: userDataArray },
+  //     { new: true }
+  //   )
+  // }

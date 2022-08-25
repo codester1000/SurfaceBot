@@ -40,7 +40,7 @@ const DataTable = ({ users, title, th }) => {
   }
 
   let userList = []
-  if (title === "Messages Sent") {
+  if (title === "Messages") {
     const filterData = users.sort((a, b) => b.numberOfMessages - a.numberOfMessages)
     userList = users.map((user) => {
       return <DataRow key={user.userID} username={user.username} data={user.numberOfMessages} />
@@ -51,6 +51,12 @@ const DataTable = ({ users, title, th }) => {
       let time = timeFix(user.voiceChatTime)
       return <DataRow key={user.userID} username={user.username} data={time} />
     })
+  } else if (title === "Invites") {
+    const filterData = users.sort((a, b) => b.invitees.length - a.invitees.length)
+    userList = users.map((user) => {
+      let time = timeFix(user.voiceChatTime)
+      return <DataRow key={user.userID} username={user.username} data={user.invitees.length} />
+    })
   }
   return (
     <div className='user_table'>
@@ -59,7 +65,7 @@ const DataTable = ({ users, title, th }) => {
         <thead>
           <tr>
             <th>Username</th>
-            <th>{title}</th>
+            <th>{th}</th>
           </tr>
         </thead>
         <tbody>
