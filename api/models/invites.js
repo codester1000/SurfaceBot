@@ -2,10 +2,10 @@ const mongoose = require('mongoose')
 
 const invitesSchema = mongoose.Schema(
   {
-    serverID: { type: Number, required: true },
+    serverID: { type: String, required: true },
     code: { type: String, required: true },
     uses: { type: Number, default: 0 },
-    member: { type: Number, required: true}
+    member: { type: String, required: true}
   }, 
   { timestamps: true }
 )

@@ -37,7 +37,7 @@ client.on("ready", async () => {
   client.guilds.cache.forEach(async (guild) => {
 
     // Fetch all Guild Invites
-    const removeInvite = await InvitesData.deleteMany({ serverID: guild.id }).exec()
+    const removeInvite = await InvitesData.deleteMany({ serverID: guild.id.toString() }).exec()
     console.log(removeInvite)
     const firstInvites = await guild.invites.fetch();
 
@@ -78,7 +78,7 @@ client.on('messageCreate', async (msg) => {
   ) 
 
   const serverAddUp = await DiscordServerData.findOneAndUpdate(
-    { serverID: guild.id },
+    { serverID: guild.id.toString() },
     { $inc: {messagesSent: 1} },
     { new: true }
   )
@@ -132,14 +132,16 @@ client.on("guildMemberAdd", async (member) => {
       const oldInvite = await InvitesData.findOne({code: newInvite.code}).exec()
       if (newInvite.uses > oldInvite.uses) {
         console.log(oldInvite.uses)
+        const serverID = member.guild.id.toString()
         const updateInviteUses = await InvitesData.findOneAndUpdate(
-          { code: newInvite.code, serverID: member.guild.id },
+          { code: newInvite.code, serverID: serverID },
           { $inc: { uses: 1 } },
           { new: true }
         )
         console.log(member.id)
+        const userID = oldInvite.member.toString()
         const updateInvites = await UserData.findOneAndUpdate(
-          { userID: oldInvite.member, serverID: member.guild.id },
+          { userID: userID, serverID: serverID },
           { $push: { invitees: member.id } },
           { new: true }
         )
@@ -150,22 +152,25 @@ client.on("guildMemberAdd", async (member) => {
 
 client.on("guildMemberRemove", async (member) => {
   console.log('this shit', member.user.id, member.guild.id, 'doesnt work')
+  userID = member.user.id.toString()
+  serverID = member.guild.id.toString()
+
   const removeServerUser = await UserData.findOneAndDelete(
-    {userID: member.user.id, serverID: member.guild.id}
+    {userID: userID, serverID: serverID}
   ).exec()
   console.log(removeServerUser)
 })
 
 client.on("guildMemberUpdate", async (member) => {
+  userID = member.user.id.toString()
   const updateUsersData = await UserData.findOneAndUpdate(
-    { userID: member.user.id },
+    { userID: userID },
     {
     username: member.user.username,
     discriminator: member.user.discriminator,
     avatar: member.user.avatar,
     banner: member.user.banner,
-    accentColor: member.user.accentColor,
-    voiceChatTime: 0
+    accentColor: member.user.accentColor
     },
     {new: true}
   )
@@ -179,7 +184,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     // User Join a voice channel
     // Handle your save when user join in memcache, database , ...
     const addVoiceStart = await UserData.findOneAndUpdate(
-      { userID: newState.id },
+      { userID: newState.id.toString() },
       { startVoiceTime: Date.now() },
       { new: true }
     )
@@ -191,7 +196,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     const delta = Math.floor((Date.now() - timedata.startVoiceTime)/1000)
     console.log(delta)
     const endVoiceStart = await UserData.findOneAndUpdate(
-      { userID: newState.id },
+      { userID: newState.id.toString() },
       { 
         $inc: { voiceChatTime: delta },
         startVoiceTime: 0
@@ -220,27 +225,28 @@ client.on('interactionCreate', async (interaction) => {
   //   return
   // };
   if (commandName === 'dashboard') {
-    console.log(interaction.member)
-    console.log(interaction.member.guild.id)
     await interaction.reply('PM Sent')
 		await interaction.member.user.send(`localhost:3001/${interaction.member.guild.id}`)
   }
-  if (commandName === 'serverSetup') {
+  if (commandName === 'setup') {
+    await interaction.reply('Setting up server for you!')
+    var guild = await client.guilds.cache.get(interaction.member.guild.id)
+    userDataArray = []
     const createServer = await DiscordServerData.create({
-      serverName: guild.name,
-      serverID: guild.id,
+      serverName: interaction.member.guild.name,
+      serverID: interaction.member.guild.id,
       messagesSent: 0,
       memberCount: guild.memberCount
     })
     // creates all the members
-    await guild.members.fetch().then(members => {
+    await interaction.member.guild.members.fetch().then(members => {
       members.forEach(member => {
         if (!member.user.bot) {
           const createUser = UserData.create({
             username: member.user.username,
             discriminator: member.user.discriminator,
             userID: member.user.id,
-            serverID: msg.guild.id,   
+            serverID: interaction.member.guild.id,   
             numberOfMessages: 0,
             messages: [],
             avatar: member.user.avatar,
@@ -271,85 +277,3 @@ client.login(token)
 mongoose.connect(dbURL, () => {
   console.log('Connected to surfacebot db')
 })
-
-
-// client.on('interactionCreate', async interaction => {
-// 	if (!interaction.isChatInputCommand()) return;
-// 	const { commandName } = interaction;
-// 	if (commandName === 'ping') {
-// 		await interaction.reply('Pong!');
-// 	} else if (commandName === 'server') {
-// 		await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
-// 	} else if (commandName === 'user') {
-// 		await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
-// 	}
-// });
-
-  // if(msg.content === '!serverfix'){
-  //   const createServer = await DiscordServerData.create({
-  //     serverName: guild.name,
-  //     serverID: guild.id,
-  //     messagesSent: 0,
-  //     memberCount: guild.memberCount
-  //   })
-  //   // creates all the members
-  //   await guild.members.fetch().then(members => {
-  //     members.forEach(member => {
-  //       if (!member.user.bot) {
-  //         const createUser = UserData.create({
-  //           username: member.user.username,
-  //           discriminator: member.user.discriminator,
-  //           userID: member.user.id,
-  //           serverID: msg.guild.id,   
-  //           numberOfMessages: 0,
-  //           messages: [],
-  //           avatar: member.user.avatar,
-  //           banner: member.user.banner,
-  //           accentColor: member.user.accentColor,
-  //           voiceChatTime: 0,
-  //         })
-  //         userDataArray.push(member.user.id)
-  //       }
-  //     })
-  //   })
-  //   const addUserData = await DiscordServerData.findOneAndUpdate(
-  //     { serverID: guild.id },
-  //     { users: userDataArray },
-  //     { new: true }
-  //   )
-  // }
-
-  // reset server
-  //   if(msg.content === '!serverfix'){
-  //   const createServer = await DiscordServerData.create({
-  //     serverName: guild.name,
-  //     serverID: guild.id,
-  //     messagesSent: 0,
-  //     memberCount: guild.memberCount
-  //   })
-  //   // creates all the members
-  //   await guild.members.fetch().then(members => {
-  //     members.forEach(member => {
-  //       if (!member.user.bot) {
-  //         const createUser = UserData.create({
-  //           username: member.user.username,
-  //           discriminator: member.user.discriminator,
-  //           userID: member.user.id,
-  //           serverID: msg.guild.id,   
-  //           numberOfMessages: 0,
-  //           messages: [],
-  //           avatar: member.user.avatar,
-  //           banner: member.user.banner,
-  //           accentColor: member.user.accentColor,
-  //           voiceChatTime: 0,
-  //         })
-  //         userDataArray.push(member.user.id)
-  //       }
-  //     })
-  //   })
-  //   const addUserData = await DiscordServerData.findOneAndUpdate(
-  //     { serverID: guild.id },
-  //     { users: userDataArray },
-  //     { new: true }
-  //   )
-  // }

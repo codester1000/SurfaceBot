@@ -21,9 +21,9 @@ const DashboardNavbar = (props) => {
             style={{ maxHeight: '100px' }}
             navbarScroll
           >
-            <Nav.Link href="/">Link</Nav.Link>
+            <Nav.Link href="/">{props.name}</Nav.Link>
           </Nav>
-          <Form className="d-flex">
+          {/* <Form className="d-flex">
             <Form.Control
               type="search"
               placeholder="Search Users"
@@ -31,7 +31,7 @@ const DashboardNavbar = (props) => {
               aria-label="Search"
             />
             <Button variant="outline-success">Search</Button>
-          </Form>
+          </Form> */}
         </Navbar.Collapse>
       </Container>
     </Navbar>
