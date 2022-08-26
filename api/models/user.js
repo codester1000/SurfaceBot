@@ -4,8 +4,8 @@ const userSchema = mongoose.Schema(
   { 
     username: { type: String, required: true },
     discriminator: { type: String, required: true },
-    userID:  { type: Number, required: true},
-    serverID: { type: Number},
+    userID:  { type: String, required: true},
+    serverID: { type: String},
     numberOfMessages: { type: Number, default: 0 },
     messages: [ { type: Number } ],
     avatar: { type: String},
@@ -13,7 +13,7 @@ const userSchema = mongoose.Schema(
     accentColor: { type: String},
     startVoiceTime: { type: Number },
     voiceChatTime: { type: Number, default: 0 },
-    invitees: [ { type: Number } ]
+    invitees: [ { type: String } ]
   }
 )
 

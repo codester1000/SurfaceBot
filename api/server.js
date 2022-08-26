@@ -13,7 +13,6 @@ app.use(cors())
 const userController = require("./controllers/user")
 const discordServerController = require("./controllers/discordserver")
 
-console.log('working')
 app.use("/servers", discordServerController)
 app.use("/users", userController)
 
