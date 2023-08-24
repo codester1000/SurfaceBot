@@ -6,6 +6,12 @@ const messageSchema = mongoose.Schema(
     messageContent: {type: String, required: true},
     replyMessageId: [ { type: String } ],
     mentions: [ { type: String } ],
+    date: { type: Date },
+    messageKarma: { type: Number, default: 0 },
+    karma: { type: Number, default: 0 },
+    flag: { type: Boolean, default: false },
+    flags: { type: String },
+    flagCategoryScores: { type: Object },
   }, 
   { timestamps: true }
 )
@@ -13,3 +19,7 @@ const messageSchema = mongoose.Schema(
 const MessageData = mongoose.model('MessageData', messageSchema)
 
 module.exports = MessageData
+
+// catching farmers and flaggin gmessages
+// this could be done using message timeframe
+// linking messages together, judging engagement via responses in casual channels
