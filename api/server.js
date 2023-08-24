@@ -12,9 +12,13 @@ app.use(cors())
 
 const userController = require("./controllers/user")
 const discordServerController = require("./controllers/discordserver")
+const channelController = require("./controllers/channels")
+const messageController = require("./controllers/messages")
 
 app.use("/servers", discordServerController)
 app.use("/users", userController)
+app.use("/channels", channelController)
+app.use("/messages", messageController)
 
 mongoose.connect(dbURL, () => {
   console.log("connected to surfaceDB")
