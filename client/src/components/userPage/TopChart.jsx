@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Stack, Typography } from '@mui/material';
 import { ResponsiveContainer, LineChart, XAxis, YAxis, Tooltip, Line } from 'recharts';
-import { monthAnalysis, weekAnalysis } from './functions/DateFunction.js';
+import { monthAnalysis, weekAnalysis } from '../functions/DateFunction.js';
 
 const TopChart = ({ messages }) => {
   const [messageCounts, setMessageCounts] = useState({})

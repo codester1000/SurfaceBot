@@ -6,12 +6,31 @@ import Form from 'react-bootstrap/Form';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import Button from 'react-bootstrap/Button';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Button } from '@mui/material';
+import { useAuth0 } from "@auth0/auth0-react";
+import LoginButton from '../buttons/LoginButton';
+import SignupButton from '../buttons/SignUpButton';
+import LogoutButton from '../buttons/LogoutButton';
+
 
 const HomeNav = () => {
+  const { isAuthenticated } = useAuth0();
+  const { loginWithRedirect } = useAuth0();
+
+  const handleLogin = async () => {
+    await loginWithRedirect({
+      appState: {
+        returnTo: "/server",
+      },
+      authorizationParams: {
+        screen_hint: "login",
+      },
+    });
+  };
+
   return (
-    <Navbar bg="white" expand="lg" className="navbar">
+    <Navbar expand="lg" className="navbar" style={{ background: 'rgba(255, 255, 255, 0)' }}>
       <Container fluid>
         <Navbar.Collapse id="navbarScroll">
           <Nav className='me-auto'>
@@ -26,6 +45,18 @@ const HomeNav = () => {
             <Nav.Link href="/">Home</Nav.Link>
             <Nav.Link href="/features">Features</Nav.Link>
             <Nav.Link href="/contact">Contact</Nav.Link>
+            <Nav.Link onClick={handleLogin}>Login</Nav.Link>
+            {/* {!isAuthenticated && (
+              <>
+                <SignupButton />
+                <LoginButton />
+              </>
+            )}
+            {isAuthenticated && (
+              <>
+                <LogoutButton />
+              </>
+            )} */}
           </Nav>
         </Navbar.Collapse>
       </Container>

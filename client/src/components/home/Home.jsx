@@ -1,18 +1,35 @@
-import { useState, useEffect } from 'react'
 import React from 'react'
-import Container from 'react-bootstrap/Container';
+import Landing from './Landing';
+import Contact from './Contact';
+import { Container } from '@mui/material';
 import HomeNav from './HomeNav';
-import '../../Home.css'
+import Background from './Background';
+import { Box } from '@mui/system';
+import InfoArea from './InfoArea';
 
 const Home = () => {
   return (
-    <Container className='home'>
-      <HomeNav />
-      <div className="cover px-3">
-        <h1>SurfaceBot</h1>
-        <p className="lead">Surfacing top contributors faster</p>
-      </div>
+    <>
+    <Box sx={{ zIndex: "-1", width: "100vw", overflowX: "hidden", position: "absolute", minHeight: "120vh", 
+      "&::before": {
+        content: '""',
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        background: "linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 1))"
+      }
+    }}>
+      <Background />
+    </Box>
+    <Container maxWidth="xl" sx={{position: "relative" }} >
+      <HomeNav/>
+      <Landing />
+      <InfoArea />
+      <Contact />
     </Container>
+    </>
   )
 }
 
