@@ -1,10 +1,13 @@
 .logo {
   height: 50px;
 }
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@100;200;300;400;500;600;700;800&family=PT+Sans+Caption:wght@400;700&display=swap');
 
 .navbar {
   background-color: white;
+  font-family: 'PT Sans Caption', sans-serif;
 }
+
 
 .top {
   padding-top: 15px;
@@ -19,4 +22,9 @@
   margin: 10px;
 }
 
-
+::-webkit-scrollbar {
+  display: none;
+}
+.smooth-scrolling {
+  scroll-behavior: smooth; /* Enable smooth scrolling */
+}

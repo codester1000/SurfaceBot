@@ -2,12 +2,12 @@ import React from 'react';
 import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import TopCards from '../cards/TopCards';
-import TopChart from '../TopChart';
-import BrTable from '../cards/BrTable';
+import TopCards from './cards/TopCards';
+import TopChart from './userPage/TopChart';
+import BrTable from './cards/BrTable';
 import { Box } from '@mui/material';
-import Flags from '../cards/Flags';
-import Info from '../Info';
+import Flags from './cards/Flags';
+import Info from './home/Info';
 import { useEffect, useState } from 'react';
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import AccountCircleRoundedIcon from '@mui/icons-material/AccountCircleRounded';
@@ -42,7 +42,8 @@ const Board = ({ server, users, channels, messages }) => {
       messageUsers = (messageUsers.length / users.length)
       health = (health*0.5) + (messageUsers*0.5)
       health = health - (activeFlags.length / 10)
-      health = health.toString().slice(0, 4)*100 + "%"
+      health = health*100
+      health = health.toString().slice(0, 5) + "%"
       return health
     }
     catch (err) {
@@ -61,7 +62,7 @@ const Board = ({ server, users, channels, messages }) => {
   }, [])
 
   return (
-    <Box maxWidth="xl" marginY={4}>
+    <Box maxWidth="xl" marginY={4} marginX="auto" >
       <Grid container direction="row" spacing={3}>
         <Grid item xs={12} md={8} height="100%" width="100%">
           <Grid direction="column" container spacing={1} height="100%">
