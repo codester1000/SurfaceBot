@@ -12,6 +12,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import LoginButton from '../buttons/LoginButton';
 import SignupButton from '../buttons/SignUpButton';
 import LogoutButton from '../buttons/LogoutButton';
+import { Link as ScrollLink } from 'react-scroll';
 
 
 const HomeNav = () => {
@@ -28,6 +29,7 @@ const HomeNav = () => {
       },
     });
   };
+  
 
   return (
     <Navbar expand="lg" className="navbar" style={{ background: 'rgba(255, 255, 255, 0)' }}>
@@ -44,7 +46,13 @@ const HomeNav = () => {
           >
             <Nav.Link href="/">Home</Nav.Link>
             <Nav.Link href="/features">Features</Nav.Link>
-            <Nav.Link href="/contact">Contact</Nav.Link>
+            <ScrollLink
+              to="contact-section" // Use the ID of the "Contact" section
+              smooth={true} // Enable smooth scrolling
+              duration={300} // Set the scroll duration in milliseconds
+            >
+              <Nav.Link>Contact</Nav.Link>
+            </ScrollLink>
             <Nav.Link onClick={handleLogin}>Login</Nav.Link>
             {/* {!isAuthenticated && (
               <>

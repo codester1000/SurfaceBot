@@ -9,11 +9,14 @@ import PersonIcon from '@mui/icons-material/Person';
 import HomeIcon from '@mui/icons-material/Home';
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
-import LoginButton from '../buttons/LoginButton';
-import SignupButton from '../buttons/SignUpButton';
-import LogoutButton from '../buttons/LogoutButton';
+import LoginButton from './buttons/LoginButton';
+import SignupButton from './buttons/SignUpButton';
+import LogoutButton from './buttons/LogoutButton';
 import { useAuth0 } from "@auth0/auth0-react";
 import Tooltip from '@mui/material/Tooltip';
+import { Link } from "react-router-dom";
+import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
+
 
 
 const drawerWidth = 75;
@@ -78,7 +81,7 @@ function SideBar() {
             <ListItem>
               <Tooltip title="Home" placement="right">
                 <ListItemIcon>
-                  <IconButton>
+                  <IconButton component={Link} to="/server">
                     <HomeIcon color="primary" fontSize="large" />
                   </IconButton>
                 </ListItemIcon>

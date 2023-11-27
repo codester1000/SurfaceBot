@@ -133,10 +133,14 @@ async function createMessageDatas(msg) {
     messageContent: msg.content,
     channelID: msg.channelId,
     serverID: msg.serverId,
+    user: msg.author.id.toString(),
+    date: new Date(msg.createdTimestamp),
   });
 
   // message moderation before server info
-  const flags = await moderateMessage(msg.content);
+  var flags = await moderateMessage(msg.content);
+  flags = flags.results[0];
+
   var modFlag = false;
   if (flags.flagged) {
     const addUserFlag = await UserData.findOneAndUpdate(
@@ -260,7 +264,8 @@ client.on("inviteCreate", async (invite) => {
   const addInvite = await InvitesData.create({
     serverID: invite.guild.id,
     code: invite.code,
-    users: invite.users,
+    uses: invite.uses,
+    member: invite.inviterId,
   });
   console.log("invite create", addInvite);
 });
@@ -297,21 +302,28 @@ client.on("guildMemberAdd", async (member) => {
       );
       console.log(member.id);
       const userID = oldInvite.member.toString();
-      const updateInvites = await UserData.findOneAndUpdate(
-        { userID: userID, serverID: serverID },
-        { $push: { invitees: member.id } },
-        { new: true }
-      );
+      const inviteUser = await UserData.findOne({
+        userID: userID,
+        serverID: serverID,
+      }).exec();
+      if (inviteUser.invitees.includes(member.id)) {
+        console.log("already been invited");
+      } else {
+        const updateInvites = await UserData.findOneAndUpdate(
+          { userID: userID, serverID: serverID },
+          { $push: { invitees: member.id } },
+          { new: true }
+        );
+      }
     }
   });
 });
 
 client.on("guildMemberRemove", async (member) => {
-  console.log("this shit", member.user.id, member.guild.id, "doesnt work");
   userID = member.user.id.toString();
   serverID = member.guild.id.toString();
 
-  const removeServerUser = await UserData.findOneAndDelete({
+  const removeServerUser = await UserData.deleteMany({
     userID: userID,
     serverID: serverID,
   }).exec();
@@ -408,7 +420,7 @@ client.on("interactionCreate", async (interaction) => {
     const dashboardEmbed = new EmbedBuilder()
       .setColor(0x0099ff)
       .setTitle(`${interaction.member.guild.name} Dashboard`)
-      .setURL(`http://localhost:3001/${interaction.member.guild.id}`)
+      .setURL(`http://localhost:3001/server`)
       .setAuthor({ name: "Surface Bot" })
       .setDescription("Surface your top contributors faster")
       .setThumbnail("https://i.ibb.co/vjCT8w7/SB-L-1.png");
@@ -425,60 +437,68 @@ client.on("interactionCreate", async (interaction) => {
     // what role has dashboard setup
     // jot for timeout
   } else if (commandName === "setup") {
-    await interaction.reply("Setting up server for you!");
     var guild = await client.guilds.cache.get(interaction.member.guild.id);
     userDataArray = [];
-    const createServer = await DiscordServerData.create({
-      serverName: interaction.member.guild.name,
+    const serverExist = await DiscordServerData.findOne({
       serverID: interaction.member.guild.id,
-      icon: interaction.member.guild.icon,
-      messagesSent: 0,
-      memberCount: guild.memberCount,
     });
-    // creates all the members
-    await interaction.member.guild.members.fetch().then((members) => {
-      members.forEach((member) => {
-        if (!member.user.bot) {
-          const createUser = UserData.create({
-            username: member.user.username,
-            discriminator: member.user.discriminator,
-            verified: member.user.verified,
-            userID: member.user.id,
-            serverID: interaction.member.guild.id,
-            messages: [],
-            avatar: member.user.avatar,
-            joinDate: new Date(member.joinedTimestamp),
-            premiumType: member.premiumType,
-            locale: member.user.locale,
-            email: member.user.email,
+    console.log(serverExist);
+    if (!serverExist) {
+      await interaction.reply("Setting up server for you!");
+      const createServer = await DiscordServerData.create({
+        serverName: interaction.member.guild.name,
+        serverID: interaction.member.guild.id,
+        icon: interaction.member.guild.icon,
+        messagesSent: 0,
+        memberCount: guild.memberCount,
+      });
+      // creates all the members
+      await interaction.member.guild.members.fetch().then((members) => {
+        members.forEach((member) => {
+          if (!member.user.bot) {
+            const createUser = UserData.create({
+              username: member.user.username,
+              discriminator: member.user.discriminator,
+              verified: member.user.verified,
+              userID: member.user.id,
+              serverID: interaction.member.guild.id,
+              messages: [],
+              avatar: member.user.avatar,
+              joinDate: new Date(member.joinedTimestamp),
+              premiumType: member.premiumType,
+              locale: member.user.locale,
+              email: member.user.email,
+            });
+            userDataArray.push(member.user.id);
+          }
+        });
+      });
+      let addChannels = [];
+      let serversChannels = guild.channels.cache;
+      serversChannels.forEach((channel) => {
+        addChannels.push(channel.id);
+        if (
+          channel.name !== "Text Channels" &&
+          channel.name !== "Voice Channels"
+        ) {
+          const createChannel = ChannelData.create({
+            channelName: channel.name,
+            channelID: channel.id,
+            type: channel.type,
           });
-          userataArray.push(member.user.id);
         }
       });
-    });
-    let addChannels = [];
-    let serversChannels = guild.channels.cache;
-    serversChannels.forEach((channel) => {
-      addChannels.push(channel.id);
-      if (
-        channel.name !== "Text Channels" &&
-        channel.name !== "Voice Channels"
-      ) {
-        const createChannel = ChannelData.create({
-          channelName: channel.name,
-          channelID: channel.id,
-          type: channel.type,
-        });
-      }
-    });
-    const addUserAndServers = await DiscordServerData.findOneAndUpdate(
-      { serverID: guild.id },
-      {
-        users: userDataArray,
-        channels: addChannels,
-      },
-      { new: true }
-    );
+      const addUserAndServers = await DiscordServerData.findOneAndUpdate(
+        { serverID: guild.id },
+        {
+          users: userDataArray,
+          channels: addChannels,
+        },
+        { new: true }
+      );
+    } else {
+      await interaction.reply("Your server already exists");
+    }
   } else if (commandName === "health") {
     await interaction.reply("Getting your server's health rating");
 
@@ -527,6 +547,7 @@ client.on("interactionCreate", async (interaction) => {
             } else {
               if (channel) {
                 await createMessageDatas(msg);
+                console.log(msg);
               } else {
                 await interaction.reply("Please complete setup first");
               }

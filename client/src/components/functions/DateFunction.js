@@ -41,8 +41,59 @@ const monthAnalysis = (messages) => {
     });
 
     data.push({
-      name: monthName,
-      value: count,
+      x: monthName,
+      y: count,
+    });
+
+    currentDate.setMonth(currentDate.getMonth() + 1);
+  }
+  return data;
+};
+
+const monthKarmaAnalysis = (messages) => {
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  const counts = {};
+  const monthsInRange = {};
+
+  messages.forEach((message) => {
+    const messageDate = new Date(message.createdAt);
+
+    if (messageDate >= sixMonthsAgo) {
+      const year = messageDate.getFullYear();
+      const month = messageDate.getMonth();
+
+      const key = `${year}-${month}`;
+      if (!counts[key]) {
+        counts[key] = message.karma;
+      } else {
+        counts[key] += message.karma;
+      }
+
+      // Keep track of which months have messages in the range
+      monthsInRange[key] = true;
+    }
+  });
+
+  // Fill in missing months with 0 count
+  const sixMonthsAgoYear = sixMonthsAgo.getFullYear();
+  const sixMonthsAgoMonth = sixMonthsAgo.getMonth();
+  let currentDate = new Date(sixMonthsAgoYear, sixMonthsAgoMonth);
+
+  const data = [];
+  while (currentDate <= new Date()) {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const key = `${year}-${month}`;
+
+    const count = counts[key] || 0;
+    const monthName = currentDate.toLocaleDateString("default", {
+      month: "short",
+    });
+    data.push({
+      x: monthName,
+      y: count,
     });
 
     currentDate.setMonth(currentDate.getMonth() + 1);
@@ -96,8 +147,8 @@ const weekAnalysis = (messages) => {
     });
 
     data.push({
-      name: dayName,
-      value: count,
+      x: dayName,
+      y: count,
     });
 
     currentDate.setDate(currentDate.getDate() + 1);
@@ -105,4 +156,4 @@ const weekAnalysis = (messages) => {
   return data;
 };
 
-export { monthAnalysis, weekAnalysis };
+export { monthAnalysis, weekAnalysis, monthKarmaAnalysis };

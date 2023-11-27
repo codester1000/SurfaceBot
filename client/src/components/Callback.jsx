@@ -2,7 +2,7 @@ import React from 'react'
 import Container from 'react-bootstrap/Container';
 import HomeNav from './home/HomeNav';
 import Grid from '@mui/material/Grid';
-import SideBar from './userPage/SideBar';
+import SideBar from './SideBar';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Toolbar from '@mui/material/Toolbar';

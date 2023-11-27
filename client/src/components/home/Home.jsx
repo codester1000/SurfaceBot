@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Landing from './Landing';
 import Contact from './Contact';
 import { Container } from '@mui/material';
@@ -6,8 +6,16 @@ import HomeNav from './HomeNav';
 import Background from './Background';
 import { Box } from '@mui/system';
 import InfoArea from './InfoArea';
+import { Link as ScrollLink, animateScroll as scroll } from 'react-scroll';
+import Footer from './Footer';
+import axios from 'axios';
+
 
 const Home = () => {
+  const scrollToTop = () => {
+    scroll.scrollToTop();
+  };
+
   return (
     <>
     <Box sx={{ zIndex: "-1", width: "100vw", overflowX: "hidden", position: "absolute", minHeight: "120vh", 
@@ -28,6 +36,7 @@ const Home = () => {
       <Landing />
       <InfoArea />
       <Contact />
+      <Footer />
     </Container>
     </>
   )
